@@ -6,7 +6,12 @@ from typing import Iterator, List, Tuple, TYPE_CHECKING
 import tcod
 
 from game_map import GameMap
+import numpy as np
+from shapes import octagon
+import sys
+
 import tile_types
+np.set_printoptions(threshold=sys.maxsize)
 
 
 if TYPE_CHECKING:
@@ -105,3 +110,83 @@ def generate_dungeon(
         rooms.append(new_room)
 
     return dungeon
+
+def generate_dungeon2(
+    map_width: int,
+    map_height: int,
+    player: Entity
+) -> GameMap:
+    """Generate a new dungeon map."""
+    dungeon = GameMap(map_width, map_height)
+    dungeon_array=octagon()
+    print(dungeon_array)
+    for x in range(map_width):
+        for y in range(map_height):
+            if dungeon_array[y][x]==1:
+                dungeon.tiles[x, y]=tile_types.wall
+            elif dungeon_array[y][x]==0:
+                dungeon.tiles[x, y]=tile_types.floor
+
+    return dungeon
+
+def generate_dungeon3():
+    while True:
+        map_outline=np.zeros((4,4),int)
+        column=np.random.randint(3)
+        row=0
+        done=False
+        while True:
+            x_direction=0
+            y_direction=0
+            if np.random.random_sample()<0.5:
+                room_type=3
+            else:
+                room_type=1
+            #need to make it flip directions on hitting walls
+            room_type_number=np.random.randint(1,6)
+            
+            if room_type_number in set([1,2]):
+                x_direction=-1
+                y_direction=0
+            elif room_type_number in set([3,4]):
+                x_direction=1
+                y_direction=0
+            else:
+                y_direction=1
+            
+            if y_direction>0 and row<3:
+                room_type=2
+            
+            if column==3 and x_direction==1 and row<3:
+                x_direction=0
+                y_direction=1
+                room_type=2
+            elif column==0 and x_direction==-1 and row<3:
+                x_direction=0
+                y_direction=1
+                room_type=2
+            elif column==3 and x_direction==1:
+                room_type=4
+                done=True
+            elif column==0  and x_direction==-1:
+                room_type=4
+                done=True
+            elif row==3 and y_direction==1:
+                room_type=4
+                done=True
+            else:
+                y_direction=0
+            
+            map_outline[row][column]=room_type
+
+            print(map_outline)
+            if done:
+                break
+            column+=x_direction
+            row+=y_direction
+            if room_type==2 and column==3:
+                x_direction=-1
+            elif room_type==2 and column==0:
+                x_direction=1
+        if np.count_nonzero(map_outline)>10:
+            break
